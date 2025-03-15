@@ -1,5 +1,5 @@
+import os
 import flet as ft
-
 
 class Message:
     def __init__(self, user_name: str, text: str, message_type: str):
@@ -32,7 +32,7 @@ class ChatMessage(ft.Row):
         if user_name:
             return user_name[:1].capitalize()
         else:
-            return "Unknown"  # or any default value you prefer
+            return "Unknown"
 
     def get_avatar_color(self, user_name: str):
         colors_lookup = [
@@ -54,11 +54,12 @@ class ChatMessage(ft.Row):
 
 
 def main(page: ft.Page):
-    page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
-    page.vertical_alignment = ft.CrossAxisAlignment.STRETCH  # 修正此处
-    page.title = "Flet Chat"
+    # 获取Render平台动态分配的端口
+    port = int(os.environ.get('PORT', 8501))  # 默认为 8501，若没有找到环境变量
 
-    # 其他代码保持不变
+    page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
+    page.vertical_alignment = ft.CrossAxisAlignment.STRETCH
+    page.title = "Flet Chat"
 
     def join_chat_click(e):
         if not join_user_name.value:
@@ -136,7 +137,7 @@ def main(page: ft.Page):
         on_submit=send_message_click,
     )
 
-    # Add chat layout
+    # Chat layout
     chat_layout = ft.Column(
         [
             ft.Container(
@@ -163,23 +164,20 @@ def main(page: ft.Page):
     )
 
     # Background with image
-    # Background with image
+    background_image = ft.Image(
+        src="path_to_your_image.jpg",  # Replace with your actual image path
+        fit=ft.ImageFit.COVER,
+        expand=True,
+    )
+
     background = ft.Stack(
         [
-            ft.Image(
-                src="cast_building.jpg",  # 替换为实际图片路径
-                fit=ft.ImageFit.COVER,  # 确保图片覆盖整个背景
-                expand=True,  # 图片适配页面大小
-            ),
-            ft.Container(
-                content=chat_layout,
-                expand=True,  # 扩展容器以适应页面
-            ),
+            background_image,  # Background image
+            ft.Container(content=chat_layout, expand=True),
         ]
     )
 
     page.add(background)
-    page.add(background)
 
-
-ft.app(target=main)
+    # Run the app with the dynamic port
+    ft.app(target=main, port=port)
