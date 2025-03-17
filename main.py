@@ -1,5 +1,6 @@
-import os
 import flet as ft
+
+pwd = "88888888"
 
 class Message:
     def __init__(self, user_name: str, text: str, message_type: str):
@@ -32,7 +33,7 @@ class ChatMessage(ft.Row):
         if user_name:
             return user_name[:1].capitalize()
         else:
-            return "Unknown"
+            return "Unknown"  # or any default value
 
     def get_avatar_color(self, user_name: str):
         colors_lookup = [
@@ -54,21 +55,25 @@ class ChatMessage(ft.Row):
 
 
 def main(page: ft.Page):
-    # 获取Render平台动态分配的端口
-    port = int(os.environ.get('PORT', 8501))  # 默认为 8501，若没有找到环境变量
-
     page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
     page.vertical_alignment = ft.CrossAxisAlignment.STRETCH
     page.title = "Flet Chat"
 
+    # A flag to control chat visibility
+    chat_container = ft.Container(visible=False)
+
+    # Validate password logic
     def join_chat_click(e):
         if not join_user_name.value:
             join_user_name.error_text = "Name cannot be blank!"
             join_user_name.update()
+        elif join_password.value != pwd:
+            join_password.error_text = "Incorrect password!"
+            join_password.update()
         else:
             page.session.set("user_name", join_user_name.value)
             welcome_dlg.open = False
-            new_message.prefix = ft.Text(f"{join_user_name.value}: ")
+            chat_container.visible = True
             page.pubsub.send_all(
                 Message(
                     user_name=join_user_name.value,
@@ -101,17 +106,23 @@ def main(page: ft.Page):
 
     page.pubsub.subscribe(on_message)
 
-    # A dialog asking for a user display name
+    # A dialog asking for a user display name and password
     join_user_name = ft.TextField(
         label="Enter your name to join the chat",
         autofocus=True,
-        on_submit=join_chat_click,
+    )
+    join_password = ft.TextField(
+        label="Enter password",
+        password=True,
+        autofocus=False,
     )
     welcome_dlg = ft.AlertDialog(
         open=True,
         modal=True,
         title=ft.Text("Welcome!"),
-        content=ft.Column([join_user_name], width=300, height=70, tight=True),
+        content=ft.Column(
+            [join_user_name, join_password], width=300, height=120, tight=True
+        ),
         actions=[ft.ElevatedButton(text="Join chat", on_click=join_chat_click)],
         actions_alignment=ft.MainAxisAlignment.END,
     )
@@ -137,7 +148,7 @@ def main(page: ft.Page):
         on_submit=send_message_click,
     )
 
-    # Chat layout
+    # Add chat layout
     chat_layout = ft.Column(
         [
             ft.Container(
@@ -163,21 +174,24 @@ def main(page: ft.Page):
         spacing=10,
     )
 
-    # Background with image
-    background_image = ft.Image(
-        src="path_to_your_image.jpg",  # Replace with your actual image path
-        fit=ft.ImageFit.COVER,
-        expand=True,
-    )
+    chat_container.content = chat_layout
 
+    # Background with image
     background = ft.Stack(
         [
-            background_image,  # Background image
-            ft.Container(content=chat_layout, expand=True),
+            ft.Image(
+                src="cast_building.jpg",
+                fit=ft.ImageFit.COVER,
+                expand=True,
+            ),
+            ft.Container(
+                content=chat_container,
+                expand=True,
+            ),
         ]
     )
 
     page.add(background)
 
-    # Run the app with the dynamic port
-    ft.app(target=main, port=port)
+
+ft.app(target=main)
